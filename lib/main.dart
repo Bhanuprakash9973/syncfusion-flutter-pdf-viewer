@@ -1,20 +1,22 @@
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
+import 'package:weeklynuget/screens/subject_screens.dart';
 
 void main() {
-  runApp(MaterialApp(
-    home: MyApp(),
+  runApp(const MaterialApp(
+    home: SubjectScreen(),
   ));
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return const MaterialApp(
       home: HomePage(),
     );
   }
@@ -22,6 +24,8 @@ class MyApp extends StatelessWidget {
 
 /// Represents Homepage for Navigation
 class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+
   @override
   _HomePage createState() => _HomePage();
 }
@@ -89,7 +93,7 @@ class _HomePage extends State<HomePage> {
           _pdfViewerKey.currentState!
               .getSelectedTextLines()
               .forEach((pdfTextLine) {
-            final PdfPage _page = document.pages[pdfTextLine.pageNumber];
+            final PdfPage page = document.pages[pdfTextLine.pageNumber];
             final PdfRectangleAnnotation rectangleAnnotation =
                 PdfRectangleAnnotation(
                     pdfTextLine.bounds, 'Highlight Annotation',
@@ -97,8 +101,8 @@ class _HomePage extends State<HomePage> {
                     color: PdfColor.fromCMYK(0, 0, 255, 0),
                     innerColor: PdfColor.fromCMYK(0, 0, 255, 0),
                     opacity: 0.5);
-            _page.annotations.add(rectangleAnnotation);
-            _page.annotations.flattenAllAnnotations();
+            page.annotations.add(rectangleAnnotation);
+            page.annotations.flattenAllAnnotations();
             xOffset = _pdfViewerController.scrollOffset.dx;
             yOffset = _pdfViewerController.scrollOffset.dy;
           });
@@ -113,7 +117,7 @@ class _HomePage extends State<HomePage> {
           _pdfViewerKey.currentState!
               .getSelectedTextLines()
               .forEach((pdfTextLine) {
-            final PdfPage _page = document.pages[pdfTextLine.pageNumber];
+            final PdfPage page = document.pages[pdfTextLine.pageNumber];
             final PdfLineAnnotation lineAnnotation = PdfLineAnnotation(
               [
                 pdfTextLine.bounds.left.toInt(),
@@ -130,8 +134,8 @@ class _HomePage extends State<HomePage> {
               innerColor: PdfColor(0, 255, 0),
               color: PdfColor(0, 255, 0),
             );
-            _page.annotations.add(lineAnnotation);
-            _page.annotations.flattenAllAnnotations();
+            page.annotations.add(lineAnnotation);
+            page.annotations.flattenAllAnnotations();
             xOffset = _pdfViewerController.scrollOffset.dx;
             yOffset = _pdfViewerController.scrollOffset.dy;
           });
@@ -146,7 +150,7 @@ class _HomePage extends State<HomePage> {
           _pdfViewerKey.currentState!
               .getSelectedTextLines()
               .forEach((pdfTextLine) {
-            final PdfPage _page = document.pages[pdfTextLine.pageNumber];
+            final PdfPage page = document.pages[pdfTextLine.pageNumber];
             final PdfLineAnnotation lineAnnotation = PdfLineAnnotation(
               [
                 pdfTextLine.bounds.left.toInt(),
@@ -165,8 +169,8 @@ class _HomePage extends State<HomePage> {
               innerColor: PdfColor(255, 0, 0),
               color: PdfColor(255, 0, 0),
             );
-            _page.annotations.add(lineAnnotation);
-            _page.annotations.flattenAllAnnotations();
+            page.annotations.add(lineAnnotation);
+            page.annotations.flattenAllAnnotations();
             xOffset = _pdfViewerController.scrollOffset.dx;
             yOffset = _pdfViewerController.scrollOffset.dy;
           });
@@ -184,81 +188,78 @@ class _HomePage extends State<HomePage> {
     BuildContext context,
     PdfTextSelectionChangedDetails? details,
   ) {
-    final RenderBox? renderBoxContainer =
+    final RenderBox renderBoxContainer =
         context.findRenderObject()! as RenderBox;
-    if (renderBoxContainer != null) {
-      const double _kContextMenuHeight = 90;
-      const double _kContextMenuWidth = 100;
-      const double _kHeight = 18;
-      final Offset containerOffset = renderBoxContainer.localToGlobal(
-        renderBoxContainer.paintBounds.topLeft,
-      );
-      if (details != null &&
-              containerOffset.dy < details.globalSelectedRegion!.topLeft.dy ||
-          (containerOffset.dy <
-                  details!.globalSelectedRegion!.center.dy -
-                      (_kContextMenuHeight / 2) &&
-              details.globalSelectedRegion!.height > _kContextMenuWidth)) {
-        double top = 0.0;
-        double left = 0.0;
-        final Rect globalSelectedRect = details.globalSelectedRegion!;
-        if ((globalSelectedRect.top) > MediaQuery.of(context).size.height / 2) {
-          top = globalSelectedRect.topLeft.dy +
-              details.globalSelectedRegion!.height +
-              _kHeight;
-          left = globalSelectedRect.bottomLeft.dx;
-        } else {
-          top = globalSelectedRect.height > _kContextMenuWidth
-              ? globalSelectedRect.center.dy - (_kContextMenuHeight / 2)
-              : globalSelectedRect.topLeft.dy +
-                  details.globalSelectedRegion!.height +
-                  _kHeight;
-          left = globalSelectedRect.height > _kContextMenuWidth
-              ? globalSelectedRect.center.dx - (_kContextMenuWidth / 2)
-              : globalSelectedRect.bottomLeft.dx;
-        }
-        final OverlayState? _overlayState =
-            Overlay.of(context, rootOverlay: true);
-        _overlayEntry = OverlayEntry(
-          builder: (context) => Positioned(
-            top: top,
-            left: left,
-            child: Container(
-              decoration: BoxDecoration(
-                color: _contextMenuColor,
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color.fromRGBO(0, 0, 0, 0.14),
-                    blurRadius: 2,
-                    offset: Offset(0, 0),
-                  ),
-                  BoxShadow(
-                    color: Color.fromRGBO(0, 0, 0, 0.12),
-                    blurRadius: 2,
-                    offset: Offset(0, 2),
-                  ),
-                  BoxShadow(
-                    color: Color.fromRGBO(0, 0, 0, 0.2),
-                    blurRadius: 3,
-                    offset: Offset(0, 1),
-                  ),
-                ],
-              ),
-              constraints: const BoxConstraints.tightFor(
-                  width: _kContextMenuWidth, height: _kContextMenuHeight),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _addAnnotation('Highlight', details.selectedText),
-                  _addAnnotation('Underline', details.selectedText),
-                  _addAnnotation('Strikethrough', details.selectedText),
-                ],
-              ),
+    const double kContextMenuHeight = 90;
+    const double kContextMenuWidth = 100;
+    const double kHeight = 18;
+    final Offset containerOffset = renderBoxContainer.localToGlobal(
+      renderBoxContainer.paintBounds.topLeft,
+    );
+    if (details != null &&
+            containerOffset.dy < details.globalSelectedRegion!.topLeft.dy ||
+        (containerOffset.dy <
+                details!.globalSelectedRegion!.center.dy -
+                    (kContextMenuHeight / 2) &&
+            details.globalSelectedRegion!.height > kContextMenuWidth)) {
+      double top = 0.0;
+      double left = 0.0;
+      final Rect globalSelectedRect = details.globalSelectedRegion!;
+      if ((globalSelectedRect.top) > MediaQuery.of(context).size.height / 2) {
+        top = globalSelectedRect.topLeft.dy +
+            details.globalSelectedRegion!.height +
+            kHeight;
+        left = globalSelectedRect.bottomLeft.dx;
+      } else {
+        top = globalSelectedRect.height > kContextMenuWidth
+            ? globalSelectedRect.center.dy - (kContextMenuHeight / 2)
+            : globalSelectedRect.topLeft.dy +
+                details.globalSelectedRegion!.height +
+                kHeight;
+        left = globalSelectedRect.height > kContextMenuWidth
+            ? globalSelectedRect.center.dx - (kContextMenuWidth / 2)
+            : globalSelectedRect.bottomLeft.dx;
+      }
+      final OverlayState overlayState = Overlay.of(context, rootOverlay: true);
+      _overlayEntry = OverlayEntry(
+        builder: (context) => Positioned(
+          top: top,
+          left: left,
+          child: Container(
+            decoration: BoxDecoration(
+              color: _contextMenuColor,
+              boxShadow: const [
+                BoxShadow(
+                  color: Color.fromRGBO(0, 0, 0, 0.14),
+                  blurRadius: 2,
+                  offset: Offset(0, 0),
+                ),
+                BoxShadow(
+                  color: Color.fromRGBO(0, 0, 0, 0.12),
+                  blurRadius: 2,
+                  offset: Offset(0, 2),
+                ),
+                BoxShadow(
+                  color: Color.fromRGBO(0, 0, 0, 0.2),
+                  blurRadius: 3,
+                  offset: Offset(0, 1),
+                ),
+              ],
+            ),
+            constraints: const BoxConstraints.tightFor(
+                width: kContextMenuWidth, height: kContextMenuHeight),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _addAnnotation('Highlight', details.selectedText),
+                _addAnnotation('Underline', details.selectedText),
+                _addAnnotation('Strikethrough', details.selectedText),
+              ],
             ),
           ),
-        );
-        _overlayState?.insert(_overlayEntry!);
-      }
+        ),
+      );
+      overlayState.insert(_overlayEntry!);
     }
   }
 
